@@ -1,6 +1,5 @@
-node_modules/
-out/
-*.vsix
-
-# Never commit local work data
-.eisenhower-todo/
+data/*.json
+data/*.bak
+*.exe
+*.zip
+.DS_Store
