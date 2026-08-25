@@ -121,7 +121,7 @@ func main() {
 	if err != nil {
 		if errors.Is(err, errDataFileInUse) {
 			runningURL, runningVersion := readRunningInstanceInfo(configPath)
-			if runningVersion == "1.4.6" && runningURL != "" {
+			if runningVersion == "1.5.1" && runningURL != "" {
 				_ = openBrowser(runningURL)
 				return
 			}
@@ -129,7 +129,7 @@ func main() {
 			if runningVersion != "" {
 				msg += "\n현재 실행 중: v" + runningVersion
 			}
-			msg += "\n\n기존 버전을 완전히 종료한 뒤 v1.4.6을 다시 실행하세요."
+			msg += "\n\n기존 버전을 완전히 종료한 뒤 v1.5.1을 다시 실행하세요."
 			fmt.Println(msg)
 			showAlreadyRunningWarning(msg)
 			time.Sleep(800 * time.Millisecond)
@@ -172,7 +172,7 @@ func main() {
 			"dataPath":               currentPath,
 			"jiraSettingsPath":       settingsPath,
 			"configPath":             configPath,
-			"version":                "1.5.0",
+			"version":                "1.5.1",
 			"displayName":            displayName,
 			"needsDataLocationSetup": needsSetup,
 		})
@@ -190,7 +190,7 @@ func main() {
 	runningPath := filepath.Join(filepath.Dir(configPath), "running.json")
 	_ = writeRunningInstance(runningPath, appURL)
 	defer os.Remove(runningPath)
-	fmt.Printf("Eisenhower Todo v1.5.0\n%s\nData: %s\nJira settings: %s\n", appURL, dataPath, settingsPath)
+	fmt.Printf("Eisenhower Todo v1.5.1\n%s\nData: %s\nJira settings: %s\n", appURL, dataPath, settingsPath)
 
 	go func() {
 		time.Sleep(350 * time.Millisecond)
@@ -1420,9 +1420,9 @@ func handleOpenURL(w http.ResponseWriter, r *http.Request) {
 func quadrantScores(q string) (importance, urgency int) {
 	switch strings.ToUpper(q) {
 	case "Q1":
-		return 80, 70
+		return 80, 80
 	case "Q3":
-		return 20, 70
+		return 20, 80
 	case "Q4":
 		return 20, 20
 	default:
@@ -1563,7 +1563,7 @@ func writeRunningInstance(path, appURL string) error {
 	payload := map[string]any{
 		"url":     appURL,
 		"pid":     os.Getpid(),
-		"version": "1.5.0",
+		"version": "1.5.1",
 	}
 	raw, err := json.MarshalIndent(payload, "", "  ")
 	if err != nil {

@@ -1,4 +1,4 @@
-# Eisenhower Todo v1.5.0
+# Eisenhower Todo v1.5.1
 
 사내망에서도 사용할 수 있는 **로컬 우선(local-first) Eisenhower Matrix 웹앱**입니다.
 
@@ -234,7 +234,7 @@ The greeting name is no longer hard-coded.
 - unfinished APs persist until completed/deleted
 - completed APs are removed instead of archived
 - existing Archive entries are cleared on first v1.5.0 load
-- cards and queue show `N일 됐음`
+- cards and queue show `N일`
 - age colors use both absolute age and relative age among active APs
 - Statistics shows active AP aging bands instead of 7-day completion trend
 
@@ -246,3 +246,12 @@ The greeting name is no longer hard-coded.
 - no external CDN, font, or image dependency
 - AP age badge shortened to `N일`
 - v1.4.8 functionality preserved
+
+
+## v1.5.1
+- Final confirmed warm editorial UI implementation.
+- 2x2 Matrix and four bottom widgets preserved on desktop layouts.
+- Local decorative PNG assets added under `web/assets`.
+- Oldest active AP is pinned as Today's Queue Priority 1 without changing its quadrant.
+- Jira recent comment is clamped to two lines with expand/collapse.
+- AP editor provides Q1-Q4 presets while keeping Importance/Base Urgency sliders editable.

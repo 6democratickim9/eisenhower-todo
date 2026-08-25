@@ -11,7 +11,7 @@ func showAlreadyRunningWarning(message string) {
 	user32 := syscall.NewLazyDLL("user32.dll")
 	messageBox := user32.NewProc("MessageBoxW")
 	text, _ := syscall.UTF16PtrFromString(message)
-	title, _ := syscall.UTF16PtrFromString("Eisenhower Todo v1.4.6")
+	title, _ := syscall.UTF16PtrFromString("Eisenhower Todo v1.5.1")
 	const MB_OK = 0x00000000
 	const MB_ICONWARNING = 0x00000030
 	messageBox.Call(

@@ -28,14 +28,17 @@ async function api(path, options = {}) {
 }
 
 async function load() {
-  state = await api('/api/state');
-  const info = await api('/api/info');
-  $('#dataPath').textContent = info.dataPath;
-  if ($('#displayName')) $('#displayName').textContent = info.displayName || 'You';
-  render();
-  if (info.needsDataLocationSetup && !storagePromptDismissed && !$('#storageDialog')?.open) {
-    setTimeout(() => openStorageSettings(true), 80);
-  }
+  return (async () => {
+    state = await api('/api/state');
+    const info = await api('/api/info');
+    if ($('#dataPath')) $('#dataPath').textContent = info.dataPath || '';
+    if ($('#displayName')) $('#displayName').textContent = info.displayName || 'You';
+    if ($('#editNameAvatar')) $('#editNameAvatar').textContent = (info.displayName || 'M').trim().charAt(0).toUpperCase() || 'M';
+    render();
+    if (info.needsDataLocationSetup && !storagePromptDismissed && !$('#storageDialog')?.open) {
+      setTimeout(() => openStorageSettings(true), 80);
+    }
+  })();
 }
 
 function nowMs() { return Date.now(); }
@@ -79,16 +82,24 @@ function ageDays(ap){
   return Math.max(0, Math.floor((today - start) / 86400000));
 }
 function activeAges(){ return (state?.actionPoints || []).map(ageDays).sort((a,b)=>a-b); }
+function oldestAp(){
+  const items=[...(state?.actionPoints||[])];
+  if(!items.length) return null;
+  const maxAge=Math.max(...items.map(ageDays));
+  return items.filter(ap=>ageDays(ap)===maxAge).sort((a,b)=>
+    (b.importance||0)-(a.importance||0) ||
+    urgency(b)-urgency(a) ||
+    new Date(a.createdAt||a.updatedAt||0).getTime()-new Date(b.createdAt||b.updatedAt||0).getTime() ||
+    (a.queueOrder||0)-(b.queueOrder||0)
+  )[0] || null;
+}
 function ageTone(ap){
-  const days = ageDays(ap);
-  if(days <= 2) return 'age-neutral';
-  const ages = activeAges();
-  if(!ages.length) return 'age-neutral';
-  const lowerOrEqual = ages.filter(v=>v<=days).length;
-  const percentile = ages.length <= 1 ? .5 : (lowerOrEqual - 1) / (ages.length - 1);
-  if(days >= 14 || (days >= 7 && percentile >= .72)) return 'age-red';
-  if(days >= 7 || (days >= 4 && percentile >= .65)) return 'age-warm';
-  return 'age-green';
+  const oldest=oldestAp();
+  if(oldest && oldest.id===ap.id) return 'age-red';
+  const days=ageDays(ap);
+  if(days<=2) return 'age-neutral';
+  if(days<=6) return 'age-green';
+  return 'age-warm';
 }
 function ageBadge(ap, compact=false){
   const days = ageDays(ap);
@@ -99,21 +110,32 @@ function qClass(q){ return String(q||'').toLowerCase(); }
 
 function render() {
   if (!state) return;
-  $('#activeCount').textContent = state.actionPoints.length;
-  $('#dueTodayCount').textContent = state.actionPoints.filter(dueToday).length;
-  const ages = state.actionPoints.map(ageDays);
+  const active=state.actionPoints || [];
+  const ages=active.map(ageDays);
+  const queueItems=orderedQueue();
+  const overdueCount=active.filter(isOverdue).length;
+  $('#activeCount').textContent = active.length;
+  $('#dueTodayCount').textContent = active.filter(dueToday).length;
+  $('#overdueCount').textContent = overdueCount;
   $('#oldestAgeCount').textContent = `${ages.length ? Math.max(...ages) : 0}일`;
   $('#staleCount').textContent = ages.filter(v=>v>=7).length;
+  $('#queueSummaryCount').textContent = queueItems.length;
+  $('#queueNavCount').textContent = queueItems.length;
+  $('#queuePanelCount').textContent = queueItems.length;
+  $('#allApCount').textContent = active.length;
   $('#queueMode').value = state.queueMode || 'manual';
 
-  const visible = state.actionPoints.filter(matchesTag);
+  const visible = active.filter(matchesTag);
+  const qCounts={Q1:0,Q2:0,Q3:0,Q4:0};
   $$('.dropzone').forEach(z => z.innerHTML = '');
   for (const ap of visible) {
-    const zone = $(`.dropzone[data-quadrant="${quadrant(ap)}"]`);
+    const q=quadrant(ap); qCounts[q]++;
+    const zone = $(`.dropzone[data-quadrant="${q}"]`);
     zone?.insertAdjacentHTML('beforeend', cardHtml(ap));
   }
+  ['Q1','Q2','Q3','Q4'].forEach(q=>{ const el=$(`#${q.toLowerCase()}Count`); if(el) el.textContent=qCounts[q]; });
   for (const zone of $$('.dropzone')) {
-    if (!zone.children.length) zone.innerHTML = `<div class="empty">${tagFilter ? `#${esc(tagFilter)} AP가 없습니다.` : '여기로 AP를 드래그하세요.'}</div>`;
+    if (!zone.children.length) zone.innerHTML = `<div class="empty">${tagFilter ? `#${esc(tagFilter)} AP가 없습니다.` : 'AP가 없습니다.'}</div>`;
   }
 
   renderQueue();
@@ -173,16 +195,24 @@ function orderedQueue() {
   if (mode === 'important') items.sort((a,b) => b.importance-a.importance || urgency(b)-urgency(a) || a.queueOrder-b.queueOrder);
   else if (mode === 'emergency') items.sort((a,b) => urgency(b)-urgency(a) || b.importance-a.importance || a.queueOrder-b.queueOrder);
   else items.sort((a,b) => a.queueOrder-b.queueOrder);
+
+  // Execution Priority와 Eisenhower Quadrant는 별개다. 가장 오래된 AP 하나만 항상 Priority 1로 고정한다.
+  const oldest=oldestAp();
+  if(oldest){
+    const i=items.findIndex(x=>x.id===oldest.id);
+    if(i>0) items.unshift(items.splice(i,1)[0]);
+  }
   return items;
 }
 
 function renderQueue() {
   const el = $('#queue');
   const items = orderedQueue();
+  const oldest=oldestAp();
   if (!items.length) { el.innerHTML=`<div class="empty">${tagFilter ? `#${esc(tagFilter)} 큐가 비어 있습니다.` : '진행 중인 AP가 없습니다.'}</div>`; return; }
-  el.innerHTML = items.map(ap => `<div class="queue-item" draggable="${state.queueMode==='manual' && !tagFilter}" data-id="${esc(ap.id)}">
-    <span class="handle">⋮⋮</span><button class="queue-check queue-complete" data-id="${esc(ap.id)}" title="완료">✅</button>
-    <div class="queue-copy"><span class="queue-title">${esc(ap.title)}</span><div class="queue-submeta">${ageBadge(ap,true)}${ap.jira?.status ? `<small class="queue-jira">${esc(ap.jira.status)}</small>` : ''}</div></div>
+  el.innerHTML = items.map((ap,index) => `<div class="queue-item" draggable="${state.queueMode==='manual' && !tagFilter}" data-id="${esc(ap.id)}">
+    <span class="handle">⋮</span><button class="queue-check queue-complete" data-id="${esc(ap.id)}" title="완료">✓</button>
+    <div class="queue-copy"><span class="queue-title">${index===0 && oldest?.id===ap.id?'<b class="priority-one">P1</b> ':''}${esc(ap.title)}</span><div class="queue-submeta">${ageBadge(ap,true)}${ap.jira?.status ? `<small class="queue-jira">${esc(ap.jira.status)}</small>` : ''}</div></div>
     <span class="queue-q ${qClass(quadrant(ap))}">${quadrant(ap)}</span><small class="queue-score">U${urgency(ap)} I${ap.importance}</small>
   </div>`).join('');
 }
@@ -291,22 +321,25 @@ function updateScorePreview(){
   const deadline = rawDeadline ? new Date(rawDeadline).toISOString() : '';
   const preview = { importance, baseUrgency, deadline };
   const effectiveUrgency = urgency(preview);
+  const q=quadrant(preview);
   $('#importanceValue').textContent = importance;
   $('#baseUrgencyValue').textContent = baseUrgency;
-  $('#quadrantPreview').textContent = quadrant(preview);
+  $('#quadrantPreview').textContent = q;
   $('#urgencyPreview').textContent = `I${importance} · U${effectiveUrgency}`;
+  $$('.q-pick').forEach(btn=>btn.classList.toggle('selected',btn.dataset.qSelect===q));
 }
 
 function resetApForm(){
   editingId=null;
   $('#apForm').reset();
   $('#apId').value='';
-  $('#importance').value='70';
+  $('#importance').value='80';
   $('#baseUrgency').value='20';
   $('#editorTitle').textContent='AP 추가';
-  $('#editorSubtitle').textContent='오른쪽에서 바로 추가하거나 편집할 수 있어요.';
+  $('#editorSubtitle').textContent='새로운 작업(AP)을 입력하세요.';
   $('#deleteBtn').classList.add('hidden');
   $('#resetApFormBtn').classList.add('hidden');
+  const submit=$('.editor-submit'); if(submit) submit.textContent='＋ AP 추가하기';
   updateScorePreview();
 }
 
@@ -317,6 +350,7 @@ function openEdit(id){
   $('#editorSubtitle').textContent='수정 후 저장하면 기존 AP에 반영됩니다.';
   $('#deleteBtn').classList.remove('hidden');
   $('#resetApFormBtn').classList.remove('hidden');
+  const submit=$('.editor-submit'); if(submit) submit.textContent='변경사항 저장';
   $('#title').value=ap.title;
   $('#details').value=ap.details||'';
   $('#importance').value=ap.importance;
@@ -325,8 +359,22 @@ function openEdit(id){
   $('#tagsInput').value=apTags(ap).join(', ');
   $('#jiraKey').value=ap.jira?.issueKey||'';
   updateScorePreview();
-  $('#apEditorPanel').scrollIntoView({behavior:'smooth',block:'start'});
-  setTimeout(()=>$('#title').focus(),250);
+  $('#apEditorPanel').scrollTo({top:0,behavior:'smooth'});
+  setTimeout(()=>$('#title').focus(),180);
+}
+
+function applyQuadrantPreset(q, focusTitle=false){
+  const presets={Q1:[80,80],Q2:[80,20],Q3:[20,80],Q4:[20,20]};
+  const pair=presets[q]||presets.Q2;
+  $('#importance').value=String(pair[0]);
+  $('#baseUrgency').value=String(pair[1]);
+  updateScorePreview();
+  if(focusTitle) setTimeout(()=>$('#title')?.focus(),80);
+}
+function startNewApInQuadrant(q){
+  resetApForm();
+  applyQuadrantPreset(q,true);
+  $('#apEditorPanel')?.scrollTo({top:0,behavior:'smooth'});
 }
 
 function toLocalInput(v){ if(!v)return''; const d=new Date(v); if(Number.isNaN(d.getTime()))return''; const p=n=>String(n).padStart(2,'0'); return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`; }
@@ -432,6 +480,9 @@ on('#clearTagFilterBtn','click',()=>{ tagFilter=null; render(); });
 on('#importance','input',updateScorePreview);
 on('#baseUrgency','input',updateScorePreview);
 on('#deadline','input',updateScorePreview);
+$$('.q-pick').forEach(b=>b.addEventListener('click',()=>applyQuadrantPreset(b.dataset.qSelect,true)));
+$$('.quadrant-add').forEach(b=>b.addEventListener('click',()=>startNewApInQuadrant(b.dataset.qAdd)));
+on('#editNameAvatar','click',openProfileSettings);
 on('#resetApFormBtn','click',resetApForm);
 
 on('#apForm','submit',async e=>{
@@ -471,7 +522,6 @@ on('#openTokenPageBtn','click',async()=>{ const url=$('#jiraTokenPageUrl').value
 on('#jiraTestBtn','click',async()=>{ try{ await api('/api/jira/settings',{method:'POST',body:JSON.stringify(jiraSettingsPayload())}); const res=await api('/api/jira/test',{method:'POST',body:'{}'}); $('#jiraMessage').textContent=res.message||'Jira 연결 성공'; await load(); }catch(err){ $('#jiraMessage').textContent=`연결 실패: ${err.message}`; }});
 
 // Storage dialog
-on('#storageSettingsBtn','click',()=>openStorageSettings(false));
 on('#storageCloseBtn','click',()=>{ storagePromptDismissed=true; $('#storageDialog')?.close(); });
 on('#storageCancelBtn','click',()=>{ storagePromptDismissed=true; $('#storageDialog')?.close(); });
 on('#storageForm','submit',async e=>{ e.preventDefault(); try{await saveStorageSettings();}catch(err){$('#storageMessage').textContent=`저장 실패: ${err.message}`;} });

@@ -8,7 +8,6 @@
   <link rel="stylesheet" href="/style.css" />
 </head>
 <body>
-
   <svg class="svg-sprite" aria-hidden="true">
     <symbol id="i-home" viewBox="0 0 24 24"><path d="M3.5 10.5 12 3.8l8.5 6.7v9.2h-6.1v-5.8H9.6v5.8H3.5z"/></symbol>
     <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/></symbol>
@@ -25,234 +24,188 @@
     <symbol id="i-plan" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="3"/><path d="M8 3v4M16 3v4M8 11h8M8 15h5"/></symbol>
     <symbol id="i-send" viewBox="0 0 24 24"><path d="m3 11 18-8-8 18-2-8z"/><path d="m11 13 5-5"/></symbol>
     <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M6.5 18H18a4 4 0 0 0 .5-8A6 6 0 0 0 7 8.2 4.8 4.8 0 0 0 6.5 9 4.5 4.5 0 0 0 6.5 18z"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+    <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 6h7l2 2h9v11H3z"/></symbol>
   </svg>
 
   <div class="app-shell">
     <aside class="sidebar">
       <div class="brand">
-        <div class="brand-logo" aria-hidden="true"><svg viewBox="0 0 48 48"><path d="M24 41V18"/><path d="M24 25c-7-1-11-5-12-12 7 1 11 5 12 12Z"/><path d="M24 30c7-1 11-5 12-12-7 1-11 5-12 12Z"/><path d="M24 20c-4-2-6-6-5-11 5 2 7 6 5 11Z"/></svg></div>
-        <div class="brand-copy"><strong>Eisenhower</strong><b>Todo</b><span>focus on what matters</span></div>
-        <span id="appVersion" class="version-badge">v1.5.0</span>
+        <img src="/assets/sparkle.png" class="brand-sparkle" alt="" />
+        <strong>Eisenhower<br />Todo</strong>
+        <span id="appVersion" class="version-badge">v1.5.1</span>
       </div>
 
       <nav class="side-nav" aria-label="주요 메뉴">
-        <button class="side-link active" data-scroll-target="homeSection"><svg class="nav-icon"><use href="#i-home"/></svg> 홈</button>
-        <button class="side-link" data-scroll-target="queuePanel"><svg class="nav-icon"><use href="#i-list"/></svg> 오늘의 큐</button>
-        <button class="side-link" data-scroll-target="calendarPanel"><svg class="nav-icon"><use href="#i-calendar"/></svg> 캘린더</button>
-        <button class="side-link" data-scroll-target="tagsPanel"><svg class="nav-icon"><use href="#i-tag"/></svg> 태그</button>
-        <button class="side-link" data-scroll-target="statsPanel"><svg class="nav-icon"><use href="#i-chart"/></svg> 통계</button>
-        <button class="side-link" id="sideProfileSettingsBtn"><svg class="nav-icon"><use href="#i-user"/></svg> 이름 설정</button>
-        <button class="side-link" id="sideJiraSettingsBtn"><svg class="nav-icon"><use href="#i-settings"/></svg> Jira 설정</button>
-        <button class="side-link" id="sideStorageSettingsBtn"><svg class="nav-icon"><use href="#i-save"/></svg> 저장 위치</button>
+        <button class="side-link active" data-scroll-target="homeSection"><svg><use href="#i-home"/></svg><span>홈</span></button>
+        <button class="side-link" data-scroll-target="queuePanel"><svg><use href="#i-list"/></svg><span>오늘의 큐</span><b id="queueNavCount" class="nav-count">0</b></button>
+        <button class="side-link" data-scroll-target="matrixPanel"><svg><use href="#i-folder"/></svg><span>전체 AP</span><b id="allApCount" class="nav-count">0</b></button>
+        <button class="side-link" data-scroll-target="calendarPanel"><svg><use href="#i-calendar"/></svg><span>캘린더</span></button>
+        <button class="side-link" data-scroll-target="tagsPanel"><svg><use href="#i-tag"/></svg><span>태그</span></button>
+        <button class="side-link" data-scroll-target="statsPanel"><svg><use href="#i-chart"/></svg><span>통계</span></button>
       </nav>
 
-      <div class="sidebar-art">
-        <svg viewBox="0 0 180 190" role="img" aria-label="Priority garden illustration">
-          <path class="art-stem" d="M88 170c-2-34 5-65 24-92"/><path class="art-stem" d="M92 140c-25-8-42-26-51-50"/><path class="art-stem" d="M99 118c18-10 32-25 42-46"/>
-          <path class="leaf moss" d="M46 88c22 0 38 10 45 31-23 0-38-10-45-31Z"/><path class="leaf buff" d="M113 80c5-22 18-35 40-40-4 23-17 36-40 40Z"/><path class="leaf payne" d="M73 54c-6-18-2-33 12-45 8 19 4 34-12 45Z"/>
-          <circle class="art-dot d1" cx="40" cy="49" r="9"/><circle class="art-dot d2" cx="148" cy="116" r="11"/><rect class="art-card" x="25" y="137" width="52" height="28" rx="7"/><rect class="art-card second" x="109" y="129" width="43" height="25" rx="7"/>
-        </svg>
-        <div class="art-caption"><strong>make space<br>for what matters</strong><span>keep the important things visible.</span></div>
-      </div>
+      <div class="side-divider"></div>
+      <nav class="side-nav settings-nav" aria-label="설정 메뉴">
+        <button class="side-link" id="sideProfileSettingsBtn"><svg><use href="#i-settings"/></svg><span>이름 설정</span></button>
+        <button class="side-link" id="sideJiraSettingsBtn"><svg><use href="#i-tag"/></svg><span>Jira 설정</span></button>
+        <button class="side-link" id="sideStorageSettingsBtn"><svg><use href="#i-save"/></svg><span>저장 위치</span></button>
+      </nav>
+
+      <img src="/assets/sidebar-botanical.png" class="sidebar-botanical" alt="" />
+      <p class="sidebar-quote">“작은 실행이<br />큰 변화를 만듭니다.”</p>
     </aside>
 
     <div class="content">
       <header class="app-header" id="homeSection">
-        <div class="greeting"><span class="eyebrow"><svg><use href="#i-spark"/></svg> DAILY PRIORITY PLANNER</span><h1>Good morning, <button id="editNameBtn" class="name-edit-btn" type="button" title="이름 수정"><span id="displayName">Minju</span><span class="name-pencil">✦</span></button>.</h1><p>중요한 일은 선명하게, 나머지는 가볍게 정리해요.</p></div>
-        <div class="header-ribbon" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
-        <div class="header-actions"><button id="jiraSyncBtn" class="soft-btn"><svg><use href="#i-sync"/></svg> Jira Sync</button><button id="reloadBtn" class="soft-btn"><svg><use href="#i-refresh"/></svg> 새로고침</button></div>
+        <div class="greeting-wrap">
+          <img src="/assets/sun-badge.png" class="sun-badge" alt="" />
+          <div class="greeting">
+            <h1>Good morning, <button id="editNameBtn" class="name-edit-btn" type="button"><span id="displayName">Minju</span></button>.</h1>
+            <p>오늘도 집중력 있는 하루를 만들어봐요.</p>
+          </div>
+        </div>
+        <div class="header-actions">
+          <button id="jiraSyncBtn" class="round-action" title="Jira Sync" aria-label="Jira Sync"><svg><use href="#i-sync"/></svg></button>
+          <button id="reloadBtn" class="round-action" title="새로고침" aria-label="새로고침"><svg><use href="#i-refresh"/></svg></button>
+          <button id="editNameAvatar" class="avatar-button" type="button" title="이름 설정">M</button>
+        </div>
       </header>
 
       <main>
-        <section class="summary-row">
-          <div class="summary-card"><div class="summary-icon"><svg><use href="#i-list"/></svg></div><div><span>진행 중</span><strong id="activeCount">0</strong></div></div>
-          <div class="summary-card"><div class="summary-icon"><svg><use href="#i-calendar"/></svg></div><div><span>오늘 마감</span><strong id="dueTodayCount">0</strong></div></div>
-          <div class="summary-card"><div class="summary-icon"><svg><use href="#i-spark"/></svg></div><div><span>가장 오래됨</span><strong id="oldestAgeCount">0일</strong></div></div>
-          <div class="summary-card"><div class="summary-icon"><svg><use href="#i-bell"/></svg></div><div><span>7일+ AP</span><strong id="staleCount">0</strong></div></div>
-          <div class="summary-card path-card">
-            <div class="path-head"><span>저장 위치</span><button id="storageSettingsBtn" class="text-btn">변경</button></div>
-            <code id="dataPath">불러오는 중…</code>
-          </div>
+        <section class="summary-row" aria-label="요약">
+          <article class="summary-card summary-green">
+            <div class="summary-icon"><svg><use href="#i-check"/></svg></div>
+            <div><span>진행 중 AP</span><strong id="activeCount">0</strong><small>현재 미완료 작업</small></div>
+          </article>
+          <article class="summary-card summary-moss">
+            <div class="summary-icon"><svg><use href="#i-calendar"/></svg></div>
+            <div><span>오늘 마감</span><strong id="dueTodayCount">0</strong><small>오늘 확인 필요</small></div>
+          </article>
+          <article class="summary-card summary-coral">
+            <div class="summary-icon"><svg><use href="#i-bell"/></svg></div>
+            <div><span>지연 AP</span><strong id="overdueCount">0</strong><small>가장 오래됨 <b id="oldestAgeCount">0일</b> · 7일+ <b id="staleCount">0</b></small></div>
+          </article>
+          <article class="summary-card summary-blue">
+            <div class="summary-icon"><svg><use href="#i-list"/></svg></div>
+            <div><span>오늘의 큐</span><strong id="queueSummaryCount">0</strong><small>다음 항목 대기</small></div>
+          </article>
         </section>
 
-        <div class="dashboard-grid">
-          <div class="primary-column">
-            <section class="matrix-wrap">
-              <div class="axis-label axis-y">IMPORTANT ↑</div>
-              <div class="matrix">
-                <article class="quadrant q1" data-quadrant="Q1">
-                  <div class="quadrant-title">
-                    <div class="quadrant-heading"><span class="quadrant-icon"><svg><use href="#i-bell"/></svg></span><div><b>Q1</b><span>Urgent + Important</span><small>01</small></div></div>
-                    <em>DO NOW</em>
-                  </div>
-                  <div class="dropzone" data-quadrant="Q1"></div>
-                </article>
-                <article class="quadrant q2" data-quadrant="Q2">
-                  <div class="quadrant-title">
-                    <div class="quadrant-heading"><span class="quadrant-icon"><svg><use href="#i-plan"/></svg></span><div><b>Q2</b><span>Not Urgent + Important</span><small>02</small></div></div>
-                    <em>PLAN</em>
-                  </div>
-                  <div class="dropzone" data-quadrant="Q2"></div>
-                </article>
-                <article class="quadrant q3" data-quadrant="Q3">
-                  <div class="quadrant-title">
-                    <div class="quadrant-heading"><span class="quadrant-icon"><svg><use href="#i-send"/></svg></span><div><b>Q3</b><span>Urgent + Not Important</span><small>03</small></div></div>
-                    <em>DELEGATE</em>
-                  </div>
-                  <div class="dropzone" data-quadrant="Q3"></div>
-                </article>
-                <article class="quadrant q4" data-quadrant="Q4">
-                  <div class="quadrant-title">
-                    <div class="quadrant-heading"><span class="quadrant-icon"><svg><use href="#i-cloud"/></svg></span><div><b>Q4</b><span>Not Urgent + Not Important</span><small>04</small></div></div>
-                    <em>LATER</em>
-                  </div>
-                  <div class="dropzone" data-quadrant="Q4"></div>
-                </article>
-              </div>
-              <div class="axis-label axis-x"><span>← NOT URGENT</span><span>URGENT →</span></div>
-            </section>
+        <section class="matrix" id="matrixPanel" aria-label="Eisenhower Matrix">
+          <article class="quadrant q1" data-quadrant="Q1">
+            <header class="quadrant-title">
+              <div class="q-copy"><b>Q1</b><div><span>Urgent + Important</span><strong>긴급하고 중요한 일</strong></div></div>
+              <em>DO NOW</em>
+            </header>
+            <span id="q1Count" class="quadrant-count">0</span>
+            <div class="dropzone" data-quadrant="Q1"></div>
+            <button type="button" class="quadrant-add" data-q-add="Q1">＋ 새 AP 추가</button>
+          </article>
 
-            <section class="widget-grid">
-              <article class="panel queue-panel" id="queuePanel">
-                <div class="panel-head">
-                  <div><h2>Today's Queue</h2><p>오늘 완료할 실제 처리 순서</p></div>
-                  <select id="queueMode">
-                    <option value="manual">수동 순서</option>
-                    <option value="important">Important 우선</option>
-                    <option value="emergency">Emergency 우선</option>
-                  </select>
-                </div>
-                <div id="queue" class="queue"></div>
-              </article>
+          <article class="quadrant q2" data-quadrant="Q2">
+            <header class="quadrant-title">
+              <div class="q-copy"><b>Q2</b><div><span>Not Urgent + Important</span><strong>중요하지만 긴급하지 않은 일</strong></div></div>
+              <em>PLAN</em>
+            </header>
+            <span id="q2Count" class="quadrant-count">0</span>
+            <div class="dropzone" data-quadrant="Q2"></div>
+            <button type="button" class="quadrant-add" data-q-add="Q2">＋ 새 AP 추가</button>
+          </article>
 
-              <article class="panel calendar-panel" id="calendarPanel">
-                <div class="panel-head calendar-head">
-                  <div><h2>Calendar</h2><p>Deadline 기준</p></div>
-                  <div class="calendar-nav"><button id="calendarPrevBtn" type="button">‹</button><strong id="calendarTitle"></strong><button id="calendarNextBtn" type="button">›</button></div>
-                </div>
-                <div class="calendar-weekdays"><span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span></div>
-                <div id="calendarGrid" class="calendar-grid"></div>
-                <div class="calendar-legend"><span><i class="dot deadline-dot"></i> 마감</span><span><i class="dot today-dot"></i> 오늘</span></div>
-              </article>
+          <article class="quadrant q3" data-quadrant="Q3">
+            <header class="quadrant-title">
+              <div class="q-copy"><b>Q3</b><div><span>Urgent + Not Important</span><strong>긴급하지만 중요하지 않은 일</strong></div></div>
+              <em>DELEGATE</em>
+            </header>
+            <span id="q3Count" class="quadrant-count">0</span>
+            <div class="dropzone" data-quadrant="Q3"></div>
+            <button type="button" class="quadrant-add" data-q-add="Q3">＋ 새 AP 추가</button>
+          </article>
 
-              <article class="panel tags-panel" id="tagsPanel">
-                <div class="panel-head"><div><h2>Tags</h2><p>AP 분류와 빠른 필터</p></div><button id="clearTagFilterBtn" class="text-btn hidden">전체 보기</button></div>
-                <div id="tagList" class="tag-list"></div>
-                <div class="priority-guide">
-                  <h3>Priority Guide</h3><p>점수가 높을수록 우선순위가 높아집니다.</p>
-                  <div class="guide-row"><span>Urgent (U)</span><div class="guide-bar urgent-guide"></div><div class="guide-scale"><b>0</b><b>25</b><b>50</b><b>75</b><b>100</b></div></div>
-                  <div class="guide-row"><span>Important (I)</span><div class="guide-bar important-guide"></div><div class="guide-scale"><b>0</b><b>25</b><b>50</b><b>75</b><b>100</b></div></div>
-                </div>
-              </article>
-            </section>
-          </div>
+          <article class="quadrant q4" data-quadrant="Q4">
+            <header class="quadrant-title">
+              <div class="q-copy"><b>Q4</b><div><span>Not Urgent + Not Important</span><strong>긴급하지도 중요하지도 않은 일</strong></div></div>
+              <em>LATER</em>
+            </header>
+            <span id="q4Count" class="quadrant-count">0</span>
+            <div class="dropzone" data-quadrant="Q4"></div>
+            <button type="button" class="quadrant-add" data-q-add="Q4">＋ 새 AP 추가</button>
+          </article>
+        </section>
 
-          <aside class="right-rail">
-            <article class="panel ap-editor-panel" id="apEditorPanel">
-              <form id="apForm">
-                <div class="panel-head editor-head">
-                  <div><span class="editor-kicker">NEW ACTION POINT</span><h2 id="editorTitle">AP 추가</h2><p id="editorSubtitle">생각난 일은 바로 적고 우선순위는 나중에 조정해도 돼요.</p></div>
-                  <button type="button" class="icon-btn hidden" id="resetApFormBtn" title="편집 취소">×</button>
-                </div>
-                <input type="hidden" id="apId" />
-                <label>AP 제목 *<input id="title" maxlength="160" required placeholder="예: 배포 파이프라인 확인" /></label>
-                <label>세부 내용 <span>(선택)</span><textarea id="details" rows="4" placeholder="필요한 내용을 입력하세요."></textarea></label>
+        <section class="widget-grid">
+          <article class="panel queue-panel" id="queuePanel">
+            <div class="panel-head"><h2>오늘의 큐 <span id="queuePanelCount">0</span></h2><select id="queueMode"><option value="manual">수동</option><option value="important">중요도</option><option value="emergency">긴급도</option></select></div>
+            <div id="queue" class="queue"></div>
+          </article>
 
-                <div class="score-grid">
-                  <label class="score-control">
-                    <div class="score-label"><span>Importance</span><strong id="importanceValue">70</strong></div>
-                    <input id="importance" type="range" min="0" max="100" step="5" value="70" />
-                  </label>
-                  <label class="score-control">
-                    <div class="score-label"><span>Urgency</span><strong id="baseUrgencyValue">20</strong></div>
-                    <input id="baseUrgency" type="range" min="0" max="100" step="5" value="20" />
-                  </label>
-                </div>
-                <div class="score-preview"><span>예상 위치</span><strong id="quadrantPreview">Q2</strong><code id="urgencyPreview">I70 · U20</code></div>
+          <article class="panel calendar-panel" id="calendarPanel">
+            <div class="panel-head calendar-head"><h2>캘린더</h2><div class="calendar-nav"><button id="calendarPrevBtn" type="button">‹</button><strong id="calendarTitle"></strong><button id="calendarNextBtn" type="button">›</button></div></div>
+            <div class="calendar-weekdays"><span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span></div>
+            <div id="calendarGrid" class="calendar-grid"></div>
+          </article>
 
-                <label>Deadline <span>(선택)</span><input id="deadline" type="datetime-local" /></label>
-                <label>태그 <span>(선택 · 쉼표로 구분)</span><input id="tagsInput" placeholder="업무, 개발, 학습" /></label>
+          <article class="panel tags-panel" id="tagsPanel">
+            <div class="panel-head"><h2>태그</h2><button id="clearTagFilterBtn" class="text-btn hidden">전체 보기</button></div>
+            <div id="tagList" class="tag-list"></div>
+          </article>
 
-                <fieldset>
-                  <legend>Jira 연동 <span>(선택)</span></legend>
-                  <label>Issue Key
-                    <input id="jiraKey" placeholder="예: ABC-123" />
-                    <small>Jira 설정의 Base URL에 자동으로 연결됩니다.</small>
-                  </label>
-                </fieldset>
-
-                <div class="editor-actions">
-                  <button type="button" id="deleteBtn" class="danger hidden">삭제</button>
-                  <span class="spacer"></span>
-                  <button type="submit" class="primary wide-save">저장</button>
-                </div>
-              </form>
-            </article>
-
-            <article class="panel stats-panel" id="statsPanel">
-              <div class="panel-head"><div><h2>Statistics</h2><p>현재 미완료 AP 분포와 노후도</p></div></div>
-              <div class="stats-top">
-                <div id="donut" class="donut"><div><strong id="donutTotal">0</strong><span>진행 AP</span></div></div>
-                <div id="statsLegend" class="stats-legend"></div>
-              </div>
-              <div class="aging-block"><div class="aging-title"><span>AP Aging</span><small>미완료 기준</small></div><div id="agingStats" class="aging-stats"></div></div>
-            </article>
-          </aside>
-        </div>
+          <article class="panel stats-panel" id="statsPanel">
+            <div class="panel-head"><h2>통계</h2><span class="week-chip">이번 주</span></div>
+            <div class="stats-top"><div id="donut" class="donut"><div><strong id="donutTotal">0</strong><span>전체 AP</span></div></div><div id="statsLegend" class="stats-legend"></div></div>
+            <div id="agingStats" class="aging-stats hidden"></div>
+          </article>
+        </section>
+        <span id="dataPath" class="hidden"></span>
       </main>
     </div>
+
+    <aside class="right-rail">
+      <article class="ap-editor-panel" id="apEditorPanel">
+        <img src="/assets/ap-cloud-top.png" class="ap-cloud-top" alt="" />
+        <img src="/assets/sparkle.png" class="ap-sparkle" alt="" />
+        <img src="/assets/ap-flower-cluster.png" class="ap-flower-cluster" alt="" />
+        <form id="apForm">
+          <div class="editor-head">
+            <div><h2 id="editorTitle">AP 추가</h2><p id="editorSubtitle">새로운 작업(AP)을 입력하세요.</p></div>
+            <button type="button" class="editor-close hidden" id="resetApFormBtn" title="편집 취소">×</button>
+          </div>
+          <input type="hidden" id="apId" />
+          <label>제목 *<input id="title" maxlength="160" required placeholder="AP 제목을 입력하세요" /></label>
+          <label>설명<textarea id="details" rows="4" placeholder="상세 설명을 입력하세요"></textarea></label>
+
+          <div class="field-label">우선순위 매트릭스 *</div>
+          <div class="quadrant-picker" id="quadrantPicker">
+            <button type="button" class="q-pick q1-pick" data-q-select="Q1"><svg><use href="#i-bell"/></svg><b>Q1</b><span>긴급 + 중요</span></button>
+            <button type="button" class="q-pick q2-pick" data-q-select="Q2"><svg><use href="#i-calendar"/></svg><b>Q2</b><span>중요</span></button>
+            <button type="button" class="q-pick q3-pick" data-q-select="Q3"><svg><use href="#i-send"/></svg><b>Q3</b><span>긴급</span></button>
+            <button type="button" class="q-pick q4-pick" data-q-select="Q4"><svg><use href="#i-cloud"/></svg><b>Q4</b><span>나중에</span></button>
+          </div>
+
+          <div class="score-grid">
+            <label class="score-control"><div class="score-label"><span>Importance</span><strong id="importanceValue">80</strong></div><input id="importance" type="range" min="0" max="100" step="5" value="80" /></label>
+            <label class="score-control"><div class="score-label"><span>Base Urgency</span><strong id="baseUrgencyValue">20</strong></div><input id="baseUrgency" type="range" min="0" max="100" step="5" value="20" /></label>
+          </div>
+          <div class="score-preview"><span>예상 위치</span><strong id="quadrantPreview">Q2</strong><code id="urgencyPreview">I80 · U20</code></div>
+
+          <label>태그<input id="tagsInput" placeholder="태그 선택 또는 입력" /></label>
+          <label>Jira 이슈<input id="jiraKey" placeholder="이슈 키를 입력하세요 (예: RCC-123)" /></label>
+          <label>예상 기간<input id="deadline" type="datetime-local" /></label>
+
+          <div class="editor-actions"><button type="button" id="deleteBtn" class="danger hidden">삭제</button><button type="submit" class="editor-submit">＋ AP 추가하기</button></div>
+        </form>
+      </article>
+    </aside>
   </div>
 
+  <dialog id="profileDialog"><form id="profileForm" method="dialog"><div class="dialog-head"><div><h2>내 이름</h2><p>이 PC 사용자에게만 저장됩니다.</p></div><button type="button" class="icon-btn" id="profileCloseBtn">×</button></div><label>표시 이름<input id="profileDisplayName" maxlength="40" placeholder="예: Minju" autocomplete="name" /></label><div class="dialog-actions"><span></span><button type="button" id="profileCancelBtn">취소</button><button type="submit" class="primary">저장</button></div><div id="profileMessage" class="settings-message"></div></form></dialog>
 
-  <dialog id="profileDialog">
-    <form id="profileForm" method="dialog">
-      <div class="dialog-head">
-        <div><h2>내 이름</h2><p class="dialog-sub">이 설정은 이 PC 사용자에게만 저장됩니다. 동료가 같은 앱을 써도 각자 다른 이름을 사용할 수 있어요.</p></div>
-        <button type="button" class="icon-btn" id="profileCloseBtn">×</button>
-      </div>
-      <label>표시 이름<input id="profileDisplayName" maxlength="40" placeholder="예: Minju" autocomplete="name" /></label>
-      <div class="dialog-actions"><span class="spacer"></span><button type="button" id="profileCancelBtn">취소</button><button type="submit" class="primary">저장</button></div>
-      <div id="profileMessage" class="settings-message"></div>
-    </form>
-  </dialog>
+  <dialog id="jiraDialog"><form id="jiraForm" method="dialog"><div class="dialog-head"><div><h2>Jira 설정</h2><p>Token은 AP 데이터와 분리된 로컬 설정 파일에 저장됩니다.</p></div><button type="button" class="icon-btn" id="jiraCloseBtn">×</button></div><label>Jira Base URL<input id="jiraBaseUrl" type="url" placeholder="https://jira.company.internal" /></label><label>Token 발급 페이지 URL <span>(선택)</span><div class="inline-field"><input id="jiraTokenPageUrl" type="url" placeholder="사내 Jira token 발급 페이지" /><button type="button" id="openTokenPageBtn">Token 받기</button></div></label><div class="form-grid"><label>인증 방식<select id="jiraAuthMode"><option value="bearer">Bearer token</option><option value="basic">Basic</option></select></label><label>Jira REST API<select id="jiraApiVersion"><option value="2">/rest/api/2</option><option value="3">/rest/api/3</option></select></label></div><label>Username / Email<input id="jiraUsername" placeholder="user@company.com" /></label><label>Token<input id="jiraToken" type="password" autocomplete="off" placeholder="Token 입력" /></label><label>자동 Sync 주기 (초)<input id="jiraAutoSyncSeconds" type="number" min="15" step="15" value="60" /></label><div class="dialog-actions"><button type="button" id="jiraTestBtn">연결 테스트</button><span></span><button type="button" id="jiraCancelBtn">취소</button><button type="submit" class="primary">저장 & Sync</button></div><div id="jiraMessage" class="settings-message"></div></form></dialog>
 
-  <dialog id="jiraDialog">
-    <form id="jiraForm" method="dialog">
-      <div class="dialog-head">
-        <div><h2>Jira 설정</h2><p class="dialog-sub">Token은 AP 데이터와 분리된 로컬 설정 파일에 저장됩니다.</p></div>
-        <button type="button" class="icon-btn" id="jiraCloseBtn">×</button>
-      </div>
-      <label>Jira Base URL<input id="jiraBaseUrl" type="url" placeholder="https://jira.company.internal" /></label>
-      <label>Token 발급 페이지 URL <span>(선택)</span><div class="inline-field"><input id="jiraTokenPageUrl" type="url" placeholder="사내 Jira token 발급 페이지" /><button type="button" id="openTokenPageBtn">Token 받기</button></div></label>
-      <div class="form-grid">
-        <label>인증 방식<select id="jiraAuthMode"><option value="bearer">Bearer token (사내 Jira PAT)</option><option value="basic">Basic (username + API token)</option></select><small>HTML/login 오류가 나면 Bearer ↔ Basic 설정을 확인하세요.</small></label>
-        <label>Jira REST API<select id="jiraApiVersion"><option value="2">/rest/api/2</option><option value="3">/rest/api/3</option></select></label>
-      </div>
-      <label>Username / Email <span>(Basic 인증일 때)</span><input id="jiraUsername" placeholder="user@company.com" /></label>
-      <label>Token<input id="jiraToken" type="password" autocomplete="off" placeholder="Token 입력" /></label>
-      <label>자동 Sync 주기 (초)<input id="jiraAutoSyncSeconds" type="number" min="15" step="15" value="60" /></label>
-      <div class="dialog-actions"><button type="button" id="jiraTestBtn">연결 테스트</button><span class="spacer"></span><button type="button" id="jiraCancelBtn">취소</button><button type="submit" class="primary">저장 & Sync</button></div>
-      <div id="jiraMessage" class="settings-message"></div>
-    </form>
-  </dialog>
+  <dialog id="storageDialog"><form id="storageForm" method="dialog"><div class="dialog-head"><div><h2>JSON 저장 위치</h2><p>첫 실행 시 선택하고, 나중에도 변경할 수 있습니다.</p></div><button type="button" class="icon-btn" id="storageCloseBtn">×</button></div><label>JSON 파일 경로<div class="inline-field"><input id="storageDataPath" placeholder="C:\\Users\\me\\Documents\\eisenhower.json" /><button type="button" id="pickStorageFolderBtn">폴더 선택</button></div></label><div class="dialog-actions"><span></span><button type="button" id="storageCancelBtn">취소</button><button type="submit" class="primary">이 위치 사용</button></div><div id="storageMessage" class="settings-message"></div></form></dialog>
 
-  <dialog id="storageDialog">
-    <form id="storageForm" method="dialog">
-      <div class="dialog-head">
-        <div><h2>JSON 저장 위치</h2><p class="dialog-sub">첫 실행 시 선택하고, 나중에도 언제든 변경할 수 있습니다.</p></div>
-        <button type="button" class="icon-btn" id="storageCloseBtn">×</button>
-      </div>
-      <label>JSON 파일 경로<div class="inline-field"><input id="storageDataPath" placeholder="C:\\Users\\me\\Documents\\eisenhower.json" /><button type="button" id="pickStorageFolderBtn">폴더 선택</button></div></label>
-      <div class="storage-help"><p>• 폴더만 지정하면 안에 <code>eisenhower.json</code>을 생성합니다.</p><p>• 기존 JSON을 지정하면 기존 데이터를 그대로 불러옵니다.</p><p>• 새 경로라면 현재 데이터를 새 위치에 저장합니다.</p></div>
-      <div class="dialog-actions"><span class="spacer"></span><button type="button" id="storageCancelBtn">취소</button><button type="submit" class="primary">이 위치 사용</button></div>
-      <div id="storageMessage" class="settings-message"></div>
-    </form>
-  </dialog>
-
-  <dialog id="historyDialog">
-    <div class="history-dialog-inner"><div class="dialog-head"><h2 id="historyTitle">AP History</h2><button type="button" class="icon-btn" id="closeHistoryBtn">×</button></div><div id="historyBody" class="history-list"></div></div>
-  </dialog>
-
+  <dialog id="historyDialog"><div class="history-dialog-inner"><div class="dialog-head"><h2 id="historyTitle">AP History</h2><button type="button" class="icon-btn" id="closeHistoryBtn">×</button></div><div id="historyBody" class="history-list"></div></div></dialog>
   <div id="toast" class="toast"></div>
   <script src="/app.js" defer></script>
 </body>
