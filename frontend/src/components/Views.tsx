@@ -1,0 +1,46 @@
+import { useMemo, useState, type DragEvent } from 'react';
+import { usePlanner } from '../state/PlannerProvider';
+import type { ActionPoint, DailyCheckpoint, JiraWatchItem, QueueMode } from '../types/models';
+import { dayKey, effectiveUrgency, orderedQueue, quadrantOf, shortDate } from '../utils/planner';
+import { JiraIssueLink } from './JiraIssueLink';
+
+export function QueueView({onEdit}:{onEdit:(ap:ActionPoint)=>void}){
+  const {state,reorderQueue,completeAP}=usePlanner(); const [dragId,setDragId]=useState<string|null>(null);
+  if(!state)return null; const items=orderedQueue(state);
+  const drop=(targetId:string)=>{if(!dragId||dragId===targetId)return;const ids=items.map(x=>x.id);const from=ids.indexOf(dragId),to=ids.indexOf(targetId);ids.splice(to,0,ids.splice(from,1)[0]);setDragId(null);void reorderQueue(ids,'manual')};
+  return <section className="page-panel"><div className="section-title"><div><span>EXECUTION ORDER</span><h2>Today’s Queue</h2><p>Matrix와 별개로 실제 실행 순서를 정리합니다.</p></div><select value={state.queueMode} onChange={e=>void reorderQueue(items.map(x=>x.id),e.target.value as QueueMode)}><option value="manual">Manual</option><option value="important">Importance</option><option value="emergency">Urgency</option></select></div><div className="queue-board">{items.map((ap,i)=><div key={ap.id} draggable={state.queueMode==='manual'} onDragStart={()=>setDragId(ap.id)} onDragOver={e=>e.preventDefault()} onDrop={()=>drop(ap.id)} className="queue-board-row"><span className="drag-handle">⋮⋮</span><span className="queue-number">{i+1}</span><button className="queue-copy-button" onClick={()=>onEdit(ap)}><b>{ap.title}</b><small>{quadrantOf(ap)} · U{effectiveUrgency(ap)} · I{ap.importance} · {shortDate(ap.deadline)}</small></button><button className="queue-complete" onClick={()=>void completeAP(ap.id)}>✓</button></div>)}</div></section>
+}
+
+export function AllAPView({onEdit}:{onEdit:(ap:ActionPoint)=>void}){
+  const {state}=usePlanner(); const [query,setQuery]=useState(''); if(!state)return null; const items=state.actionPoints.filter(ap=>(ap.title+' '+ap.tags.join(' ')).toLowerCase().includes(query.toLowerCase()));
+  return <section className="page-panel"><div className="section-title"><div><span>ACTIVE AP</span><h2>All AP</h2><p>현재 진행 중인 Action Priority 전체를 봅니다.</p></div><input className="panel-search" placeholder="Filter AP..." value={query} onChange={e=>setQuery(e.target.value)}/></div><div className="ap-table"><div className="table-head"><span>AP</span><span>Quadrant</span><span>Importance</span><span>Urgency</span><span>Deadline</span></div>{items.map(ap=><button key={ap.id} className="table-row" onClick={()=>onEdit(ap)}><span><b>{ap.title}</b><small>{ap.tags.map(t=>`#${t}`).join(' ')}</small></span><span className={`q-chip ${quadrantOf(ap).toLowerCase()}`}>{quadrantOf(ap)}</span><span>{ap.importance}</span><span>{effectiveUrgency(ap)}</span><span>{shortDate(ap.deadline)}</span></button>)}</div></section>
+}
+
+export function DailyView({onNew,onEdit}:{onNew:()=>void;onEdit:(item:DailyCheckpoint)=>void}){
+  const {state,toggleDailyCheckpoint,updateDailyCheckpoint}=usePlanner(); if(!state)return null; const today=dayKey(); const items=[...state.dailyCheckpoints].sort((a,b)=>a.order-b.order);
+  return <section className="page-panel"><div className="section-title"><div><span>RECURRING CHECK</span><h2>Daily Check</h2><p>매일 되살아나는 개인 체크포인트입니다. Disable은 삭제가 아닙니다.</p></div><button className="primary small" onClick={onNew}>＋ Add checkpoint</button></div><div className="daily-manager">{items.map(item=><div className={`daily-manager-row ${!item.enabled?'disabled':''}`} key={item.id}><input type="checkbox" checked={item.completedDates.includes(today)} disabled={!item.enabled} onChange={()=>void toggleDailyCheckpoint(item.id,today)}/><button className="daily-title" onClick={()=>onEdit(item)}><b>{item.title}</b><small>{item.enabled?'Enabled':'Disabled'}</small></button><label className="toggle"><input type="checkbox" checked={item.enabled} onChange={e=>void updateDailyCheckpoint(item.id,{enabled:e.target.checked})}/><span/></label></div>)}</div></section>
+}
+
+export function CalendarView({onEdit}:{onEdit:(ap:ActionPoint)=>void}){
+  const {state}=usePlanner(); const [cursor,setCursor]=useState(()=>new Date(new Date().getFullYear(),new Date().getMonth(),1)); if(!state)return null;
+  const data=useMemo(()=>{const year=cursor.getFullYear(),month=cursor.getMonth(),first=new Date(year,month,1),start=new Date(year,month,1-first.getDay());return Array.from({length:42},(_,i)=>{const d=new Date(start);d.setDate(start.getDate()+i);const items=state.actionPoints.filter(ap=>ap.deadline&&sameDay(new Date(ap.deadline),d));return{d,items,out:d.getMonth()!==month}})},[cursor,state.actionPoints]);
+  const move=(delta:number)=>setCursor(new Date(cursor.getFullYear(),cursor.getMonth()+delta,1));
+  return <section className="page-panel"><div className="section-title"><div><span>DEADLINE VIEW</span><h2>Calendar</h2><p>AP deadline을 월 단위로 확인합니다.</p></div><div className="month-nav"><button onClick={()=>move(-1)}>‹</button><b>{cursor.toLocaleDateString(undefined,{year:'numeric',month:'long'})}</b><button onClick={()=>move(1)}>›</button></div></div><div className="calendar-week"><span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span></div><div className="calendar-grid">{data.map(({d,items,out})=><div key={d.toISOString()} className={`calendar-cell ${out?'outside':''} ${sameDay(d,new Date())?'today':''}`}><b>{d.getDate()}</b><div>{items.slice(0,3).map(ap=><button key={ap.id} className={`calendar-event ${quadrantOf(ap).toLowerCase()}`} onClick={()=>onEdit(ap)}>{ap.title}</button>)}{items.length>3&&<small>+{items.length-3} more</small>}</div></div>)}</div></section>
+}
+function sameDay(a:Date,b:Date){return a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate()}
+
+export function TagsView({onEdit}:{onEdit:(ap:ActionPoint)=>void}){
+  const {state}=usePlanner(); const [tag,setTag]=useState<string|null>(null); if(!state)return null; const counts=new Map<string,number>();state.actionPoints.forEach(ap=>ap.tags.forEach(t=>counts.set(t,(counts.get(t)||0)+1)));const tags=[...counts.entries()].sort((a,b)=>b[1]-a[1]);const items=tag?state.actionPoints.filter(ap=>ap.tags.includes(tag)):state.actionPoints;
+  return <section className="page-panel"><div className="section-title"><div><span>CONTEXT FILTER</span><h2>Tags</h2><p>업무 컨텍스트별 AP를 빠르게 좁혀봅니다.</p></div>{tag&&<button className="ghost small" onClick={()=>setTag(null)}>Clear #{tag}</button>}</div><div className="tag-cloud">{tags.map(([name,count])=><button key={name} className={tag===name?'active':''} onClick={()=>setTag(name)}>#{name}<b>{count}</b></button>)}</div><div className="tag-results">{items.map(ap=><button key={ap.id} onClick={()=>onEdit(ap)}><span className={`q-chip ${quadrantOf(ap).toLowerCase()}`}>{quadrantOf(ap)}</span><b>{ap.title}</b><small>{ap.tags.join(' · ')}</small></button>)}</div></section>
+}
+
+export function StatisticsView(){
+  const {state}=usePlanner(); if(!state)return null; const qCounts={Q1:0,Q2:0,Q3:0,Q4:0};state.actionPoints.forEach(ap=>qCounts[quadrantOf(ap)]++);const total=Math.max(1,state.actionPoints.length);const completed=state.archive.length;const enabled=state.dailyCheckpoints.filter(x=>x.enabled);const dailyDone=enabled.filter(x=>x.completedDates.includes(dayKey())).length;
+  return <section className="page-panel"><div className="section-title"><div><span>PERSONAL SIGNALS</span><h2>Statistics</h2><p>성과 과시가 아니라, 내가 어디에 시간을 쓰고 있는지 보는 화면입니다.</p></div></div><div className="stat-grid"><article><span>Active AP</span><strong>{state.actionPoints.length}</strong><small>current workload</small></article><article><span>Completed</span><strong>{completed}</strong><small>archive total</small></article><article><span>Daily Check</span><strong>{dailyDone}/{enabled.length}</strong><small>today</small></article><article><span>Jira Watch</span><strong>{state.jiraWatch.length}</strong><small>tracked by me</small></article></div><div className="chart-card"><h3>Quadrant distribution</h3>{(Object.keys(qCounts) as (keyof typeof qCounts)[]).map(q=><div className="bar-row" key={q}><span>{q}</span><div><i className={q.toLowerCase()} style={{width:`${qCounts[q]/total*100}%`}}/></div><b>{qCounts[q]}</b></div>)}</div></section>
+}
+
+export function JiraView({items,onChange,onSync}:{items:JiraWatchItem[];onChange:(items:JiraWatchItem[])=>void;onSync:()=>void}){
+  const {state}=usePlanner();
+  const baseUrl=state?.settings.jiraBaseUrl||'';
+  return <section className="page-panel"><div className="section-title"><div><span>PERSONAL WATCHLIST</span><h2>My Jira Watch</h2><p>Done이 아닌 내가 볼 티켓만 추적합니다.</p></div><button className="ghost small" onClick={onSync}>↻ Sync</button></div><div className="jira-full-list">{items.map(item=><div key={item.id}><JiraIssueLink issueKey={item.issueKey} url={item.url} baseUrl={baseUrl} className="jira-watch-key"/><span>{item.title}</span><select value={item.status} onChange={e=>onChange(items.map(x=>x.id===item.id?{...x,status:e.target.value as JiraWatchItem['status']}:x))}><option>Open</option><option>In Review</option><option>Blocked</option><option>Done</option></select></div>)}</div></section>
+}

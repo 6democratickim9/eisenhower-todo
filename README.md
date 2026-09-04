@@ -1,257 +1,605 @@
-# Eisenhower Todo v1.5.1
+# EISEN / DAY v2
 
-사내망에서도 사용할 수 있는 **로컬 우선(local-first) Eisenhower Matrix 웹앱**입니다.
+**A local-first personal operations dashboard for people who manage real work, not just to-do lists.**
 
-## 실행
+EISEN / DAY combines an Eisenhower Matrix, execution queue, recurring daily checks, Jira tracking, calendar, tags, and lightweight statistics in one desktop workspace.
 
-Windows 배포본에서는 `eisenhower-todo.exe`를 더블클릭합니다.
+The UI is built with **React + TypeScript + Vite** and the local backend runs on **Python + FastAPI**. Packaged builds launch everything together as a single desktop app.
 
-- Node.js / npm 불필요
-- Docker / Python 불필요
-- 브라우저 자동 실행
-- localhost(`127.0.0.1`)에만 바인딩
+> **No separate server is required for normal use.**  
+> On Windows, open `EisenDay.exe`. On macOS, open `EisenDay.app`.
 
-## v1.4.0 Dashboard
+---
 
-레퍼런스 UI를 기준으로 대시보드를 재구성했습니다.
+## What EISEN / DAY does
 
-- 중앙: Eisenhower Q1~Q4 Matrix
-- 하단: Today's Queue / Calendar / Tags
-- 우측: 상시 노출 AP 추가·편집 폼 / Statistics
-- Archive는 하단 별도 영역 유지
-- 상단/사분면의 `AP 추가` 버튼 제거
-- 카드의 `편집`을 누르면 우측 AP 폼에서 바로 수정
-- Tags를 AP 데이터 모델에 추가하고 쉼표 입력 지원
-- Tags 패널에서 태그별 개수 표시 및 클릭 필터
-- Calendar는 AP Deadline을 월 단위로 표시
-- Statistics는 Q1~Q4 분포와 최근 7일 완료 추이를 표시
+EISEN / DAY is designed around three different kinds of work:
 
-## AP
+### Action Points (AP)
 
-- Title: 필수
-- Details: 선택
-- Importance: 0~100 직접 설정
-- Base Urgency: 0~100 직접 설정
-- Deadline: 선택
-- Tags: 선택
-- Jira: 선택
+Action Points are normal one-time tasks. Each AP can have:
 
-Deadline이 가까워지면 Effective Urgency가 자동 상승하며 Q2→Q1, Q4→Q3로 이동할 수 있습니다.
+- title and details
+- importance score
+- base urgency score
+- deadline
+- tags
+- Jira issue link
+- queue position
+- creation/update/completion timestamps
 
-## JSON 저장 위치
+The app calculates **Effective Urgency** by combining your base urgency with deadline pressure, then automatically places the AP into the Eisenhower Matrix:
 
-첫 실행 시 `eisenhower.json` 위치를 확인하거나 선택할 수 있습니다.
+| Quadrant | Meaning |
+| --- | --- |
+| **Q1** | Urgent + Important |
+| **Q2** | Important, not urgent |
+| **Q3** | Urgent, less important |
+| **Q4** | Lower priority |
 
-- Windows 폴더 선택 지원
-- 직접 경로 입력 지원
-- 기존 JSON을 지정하면 기존 데이터를 로드
-- 새 경로면 현재 데이터를 새 위치에 저장
-- 선택 위치는 exe 옆 `eisenhower-config.json`에 기억
-- 백업은 선택한 JSON 옆 `<filename>.bak`
+Dragging an AP between quadrants updates its priority inputs instead of storing a fake visual-only quadrant.
 
-## Jira
+### Daily Checkpoints
 
-Jira 설정은 exe 옆 `data/jira-settings.json`에 별도 저장합니다.
+Daily Checkpoints are for things that need to be verified every day, such as:
 
-지원 설정:
+- checking batch jobs
+- reviewing monitoring dashboards
+- confirming backups
+- checking operational reports
+- reviewing Jira progress
+
+A checkpoint can be completed **for today** without disappearing permanently. The next day it becomes pending again automatically because completion is stored by date.
+
+Checkpoints can also be **disabled without being deleted**, so recurring routines can be paused and re-enabled later.
+
+### Jira Watch
+
+Jira Watch keeps track of issues you still care about even when the local AP is complete.
+
+It can store and sync:
+
+- issue key
+- summary
+- status
+- status category
+- assignee
+- latest comment
+- Jira created/updated timestamps
+- last sync time
+- sync errors
+
+Issues in Jira's **Done** category are removed from the watch list during sync. A completed local AP can still remain visible in Jira Watch if its Jira issue is not done yet.
+
+Jira Issue Keys are clickable links. When a Jira Base URL is configured, `OPS-123` opens `<Jira Base URL>/browse/OPS-123`. EISEN / DAY also normalizes accidentally pasted ticket or REST API URLs back to the Jira base path before generating links.
+
+---
+
+## Main features
+
+### Eisenhower Matrix
+
+The home workspace keeps the core workload in a 2x2 matrix. APs are classified automatically using **Importance** and **Effective Urgency**.
+
+Effective Urgency increases as a deadline gets closer, so an AP can naturally move from Q2 to Q1 as time pressure increases.
+
+### Today's Queue
+
+The queue answers a different question from the Matrix:
+
+- **Matrix:** What kind of work is this?
+- **Queue:** What should I execute first?
+
+Queue modes:
+
+- **Manual** — drag and reorder tasks yourself
+- **Importance** — sort primarily by importance
+- **Urgency** — sort primarily by effective urgency
+
+The **oldest active AP is always pinned to Priority #1**, preventing long-neglected work from being silently buried.
+
+### Daily Check
+
+Daily Check shows enabled recurring checkpoints and whether each one has been completed today. Completion history is date-based, so there is no midnight job that has to rewrite every task.
+
+### Calendar
+
+The Calendar view displays AP deadlines in a monthly layout. Up to several tasks are shown directly in each day cell, with overflow indicated when more exist.
+
+### Tags
+
+Tags provide a fast context filter for active APs. The Tags view shows tag usage counts and lets you narrow the AP list without changing the underlying task state.
+
+### Statistics
+
+Statistics provide lightweight personal signals rather than productivity scoring. Current metrics include:
+
+- active AP count
+- completed/archive count
+- today's Daily Check progress
+- Jira Watch count
+- workload distribution across Q1-Q4
+
+### Search and editing
+
+APs can be searched and edited from the dashboard. Editors are shown in drawers so the main Matrix stays visible and the app remains focused on the current workload.
+
+### Local-first storage
+
+Planner data is stored locally as JSON.
+
+The backend provides:
+
+- atomic file replacement
+- `.bak` recovery backup
+- cross-platform sidecar file locking
+- configurable data storage location
+- automatic legacy schema migration
+
+The goal is to keep the app usable without a cloud account or hosted database.
+
+---
+
+# Downloads and package types
+
+EISEN / DAY intentionally separates **source code** from **end-user releases**.
+
+| Package | Intended for | Contents |
+| --- | --- | --- |
+| `EisenDay-source.zip` | Development / GitHub | `backend/`, `frontend/`, build scripts, tests, README |
+| `EisenDay-windows-portable.zip` | Windows users | `EisenDay.exe` only |
+| `EisenDay-macos-arm64.zip` / `x86_64.zip` | macOS users | `EisenDay.app` only |
+
+If you only want to use the app, download the package for your operating system. You do **not** need the `backend/` or `frontend/` source folders. Those folders exist only in the developer/source package.
+
+---
+
+
+# Build on GitHub — Windows or macOS
+
+The repository includes a GitHub Actions workflow at:
+
+```text
+.github/workflows/build-desktop.yml
+```
+
+You can build **two end-user packages directly on GitHub** without setting up both operating systems yourself:
+
+| GitHub build option | Runner | Output |
+| --- | --- | --- |
+| **Windows x64** | `windows-latest` | `EisenDay-windows-portable.zip` → `EisenDay.exe` |
+| **macOS Apple Silicon** | `macos-15` | `EisenDay-macos-arm64.zip` → `EisenDay.app` |
+
+## Manual build from the GitHub UI
+
+1. Open the repository on GitHub.
+2. Go to **Actions**.
+3. Select **Build Desktop Releases**.
+4. Click **Run workflow**.
+5. Choose `all`, `windows`, or `macos`.
+6. When the run finishes, download the requested package from the **Artifacts** section.
+
+Selecting `all` builds the Windows and macOS packages in parallel. Selecting one platform builds only that package.
+
+## Automatic GitHub Release
+
+Pushing a tag beginning with `v` builds **both** packages and attaches them to the matching GitHub Release:
+
+```bash
+git tag v2.0.0
+git push origin v2.0.0
+```
+
+The release will contain only the two end-user downloads:
+
+```text
+EisenDay-windows-portable.zip
+EisenDay-macos-arm64.zip
+```
+
+The source code remains in the GitHub repository itself; `backend/` and `frontend/` are not placed inside either release ZIP.
+
+> The macOS GitHub build currently targets **Apple Silicon (arm64)**. Intel Mac can be added later as a third build if needed.
+
+---
+
+# Quick Start
+
+## Option A — Run a packaged app
+
+Use this if you already have a built release.
+
+### Windows
+
+1. Extract `EisenDay-windows-portable.zip`.
+2. Double-click `EisenDay.exe`.
+3. Start using the app.
+
+You do **not** need Python, Node.js, npm, or a separate backend process.
+
+### macOS
+
+1. Extract `EisenDay-macos-*.zip`.
+2. Double-click `EisenDay.app`.
+3. If macOS blocks the unsigned local build on first launch, use **Finder → right-click `EisenDay.app` → Open**.
+
+You do **not** need Python, Node.js, npm, or a separate backend process.
+
+The packaged app starts a local FastAPI server on an available `127.0.0.1` port and opens the React UI inside a native desktop window.
+
+---
+
+## Option B — Run from source
+
+### Requirements
+
+- Python 3
+- Node.js + npm
+
+Clone or extract the repository, then run commands from the project root.
+
+### macOS — easiest development start
+
+On first use:
+
+```bash
+chmod +x run_macos_dev.sh
+```
+
+Then run:
+
+```bash
+./run_macos_dev.sh
+```
+
+The script automatically:
+
+1. creates a Python virtual environment
+2. installs Python dependencies
+3. installs frontend dependencies
+4. builds the React frontend
+5. starts the FastAPI backend
+6. opens EISEN / DAY in a native window
+
+Use the same command on later runs:
+
+```bash
+./run_macos_dev.sh
+```
+
+### Windows — development mode
+
+Create the Python environment:
+
+```powershell
+py -3 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+pip install -r requirements-dev.txt
+```
+
+Start the backend in **Terminal 1**:
+
+```powershell
+$env:PYTHONPATH = (Get-Location).Path
+uvicorn backend.app.main:create_app --factory --host 127.0.0.1 --port 8787
+```
+
+Start the frontend in **Terminal 2**:
+
+```powershell
+cd frontend
+npm install
+$env:VITE_API_MODE='http'
+$env:VITE_API_BASE_URL='http://127.0.0.1:8787'
+npm run dev
+```
+
+Open the localhost URL printed by Vite.
+
+> Development mode runs frontend and backend separately. Packaged releases do not.
+
+---
+
+# Build a desktop release
+
+## macOS `.app`
+
+Run on macOS:
+
+```bash
+chmod +x build_macos.sh
+./build_macos.sh
+```
+
+Outputs:
+
+```text
+dist/EisenDay.app
+release/EisenDay-macos-arm64.zip   # Apple Silicon
+release/EisenDay-macos-x86_64.zip  # Intel Mac
+```
+
+The script automatically builds for the current Mac architecture.
+
+Optional universal build:
+
+```bash
+EISEN_DAY_TARGET_ARCH=universal2 ./build_macos.sh
+```
+
+`universal2` requires a universal2 Python installation and compatible native dependencies.
+
+## Windows `.exe`
+
+Run on Windows PowerShell:
+
+```powershell
+.\build_windows.ps1
+```
+
+Outputs:
+
+```text
+dist\EisenDay.exe
+release\EisenDay-windows-portable.zip
+```
+
+The build script performs the frontend build, backend tests, PyInstaller packaging, and portable ZIP creation.
+
+---
+
+# Architecture
+
+```text
+EisenDay.exe / EisenDay.app
+        │
+        ├── pywebview native desktop window
+        │
+        └── FastAPI on 127.0.0.1:{available_port}
+                │
+                ├── React/Vite production UI
+                ├── REST API
+                ├── AP / Matrix logic
+                ├── Queue logic
+                ├── Daily Checkpoint logic
+                ├── Jira REST client
+                └── local JSON storage
+```
+
+Production uses same-origin `/api/...` requests, so the launcher can choose a free localhost port dynamically without hard-coding a frontend API address.
+
+---
+
+# Project structure
+
+```text
+eisen_day/
+├── frontend/               React + TypeScript + Vite
+│   ├── src/
+│   │   ├── api/            frontend API adapter
+│   │   ├── components/     dashboard, matrix, drawers, views
+│   │   ├── state/          planner state/provider
+│   │   ├── types/          TypeScript domain models
+│   │   └── utils/          urgency, quadrant, queue helpers
+│   └── API_CONTRACT.md
+│
+├── backend/                FastAPI backend
+│   ├── app/                API, services, storage, Jira logic
+│   └── tests/
+│
+├── launcher.py             desktop entry point
+├── build_windows.ps1       Windows release build
+├── build_macos.sh          macOS release build
+├── run_macos_dev.sh        macOS source-run helper
+├── EisenDay.spec           Windows PyInstaller spec
+├── EisenDay_macos.spec     macOS PyInstaller spec
+├── requirements.txt
+├── requirements-dev.txt
+└── requirements-macos.txt
+```
+
+---
+
+# Local data locations
+
+## Windows
+
+```text
+%APPDATA%\EisenDay\
+  config.json
+  jira-settings.json
+  data\eisenhower.json
+```
+
+## macOS
+
+```text
+~/Library/Application Support/EisenDay/
+  config.json
+  jira-settings.json
+  data/eisenhower.json
+```
+
+`eisenhower.json` is written using atomic replacement. When a valid previous file exists, a `.bak` backup is kept for recovery.
+
+A sidecar `.lock` file prevents multiple processes from writing the same planner file at the same time.
+
+The data location can also be changed from **Settings**.
+
+---
+
+# Jira setup
+
+Open **Settings → Jira** inside EISEN / DAY.
+
+Supported configuration:
 
 - Jira Base URL
-- Token 발급 페이지 URL
-- Bearer 또는 Basic 인증
-- Username/Email (Basic)
-- Token
-- Jira REST API v2/v3
-- 자동 Sync 주기
+- Bearer authentication
+- Basic authentication
+- Jira REST API v2 or v3
+- API token
 
-Jira 연결 AP에서 표시:
+The Jira token is stored separately in `jira-settings.json` and is **never returned by `/api/state`**.
 
-- Status
-- Assignee
-- 최근 댓글 1개
-- Last Sync
-- Sync 오류
+During sync:
 
-긴 Jira 댓글은 기본 2줄만 표시하고 `더보기`로 펼칠 수 있습니다. Jira Cloud ADF 댓글도 paragraph/hard break를 가능한 범위에서 줄바꿈으로 보존합니다.
+- AP-linked Jira metadata is refreshed
+- Jira Watch items are updated
+- issues in Jira's `Done` status category are removed
+- completed local APs can remain tracked when Jira is still open
 
-Jira fetch 시점:
+Jira features require network access to the configured Jira server. The rest of the app can operate locally.
 
-- 앱 시작
-- AP 생성/수정/이동/삭제
-- 완료/복원
-- Queue 변경/재정렬
-- Jira 설정 저장
-- 수동 Jira Sync
-- 자동 Sync 주기
+---
 
-Jira Status/Assignee/최근 댓글 변경은 AP History에 `jira-change`로 기록합니다.
+# Legacy data migration
 
-## 설정 Dialog
+EISEN / DAY can migrate data from the previous Go-based version when compatible legacy files are detected.
 
-v1.3.0에서 발생했던 Jira 설정 / 저장 위치 Dialog의 `×`가 동작하지 않는 문제를 수정했습니다.
+Current migration support includes:
 
-- 모든 이벤트 바인딩을 null-safe 방식으로 변경
-- Jira 설정 `×` / 취소 정상 닫힘
-- 저장 위치 `×` / 취소 정상 닫힘
-- backdrop 클릭으로도 닫힘
-- 첫 실행 저장 위치 안내를 닫으면 현재 세션에서는 반복해서 다시 열리지 않음
+- `dailyTasks` → `dailyCheckpoints`
+- `jiraTickets` → `jiraWatch`
+- existing AP and Jira metadata preservation where possible
+- legacy `%APPDATA%/EisenhowerTodo` settings discovery on Windows
 
-## 소스 빌드
+Before the first schema migration, the original JSON is additionally preserved as:
 
-```bash
-go build -o eisenhower-todo .
+```text
+.pre-v6.bak
 ```
 
-Windows amd64:
+---
 
-```bash
-GOOS=windows GOARCH=amd64 go build -o eisenhower-todo.exe .
+# Backend API overview
+
+Production frontend uses same-origin `/api/...` endpoints.
+
+### Planner
+
+```text
+GET    /api/state
+POST   /api/ap
+PUT    /api/ap/{id}
+DELETE /api/ap/{id}
+POST   /api/ap/{id}/complete
+POST   /api/archive/{id}/restore
+POST   /api/queue
 ```
 
+### Daily Checkpoints
 
-## v1.5.0 Icon polish
+```text
+POST   /api/daily-checkpoints
+PUT    /api/daily-checkpoints/{id}
+DELETE /api/daily-checkpoints/{id}
+POST   /api/daily-checkpoints/{id}/toggle
+```
 
-- Replaced pseudo-glyph/CSS-looking icons with native emoji icons.
-- No external icon CDN or image dependency, so the UI stays fully offline-friendly.
-- Added a local emoji favicon.
-- Updated sidebar, summary cards, quadrants, Jira link, deadline and complete icons.
+### Jira
 
+```text
+PUT    /api/jira/watch
+POST   /api/jira/watch/sync
+GET    /api/jira/config
+PUT    /api/jira/config
+POST   /api/jira/test
+```
 
-## v1.5.0 storage reliability
+### Settings
 
-This release changes persistence to avoid apparent data resets after upgrades.
+```text
+PUT    /api/settings
+GET    /api/info
+```
 
-### Stable config location
+See [`frontend/API_CONTRACT.md`](frontend/API_CONTRACT.md) for the frontend-facing contract.
 
-The selected planner JSON path is now remembered in the user's OS config directory:
+---
 
-- Windows: `%APPDATA%\EisenhowerTodo\config.json`
-- Jira settings: `%APPDATA%\EisenhowerTodo\jira-settings.json`
-- Default planner data: `%APPDATA%\EisenhowerTodo\data\eisenhower.json`
+# Tests
 
-Moving or upgrading `eisenhower-todo.exe` no longer creates a new independent configuration just because the EXE lives in a different folder.
+Run backend tests from the project root.
 
-Existing v1.2-v1.4.1 portable config is migrated automatically when it is beside the upgraded EXE.
+### macOS / Linux
 
-### Safer writes
+```bash
+PYTHONPATH=. pytest -q backend/tests
+```
 
-Planner data is written to `.tmp`, flushed to disk, and then replaced safely.
+### Windows PowerShell
 
-On Windows the previous main file is rotated to `.old` before replacement. If the replacement fails, the old file is restored instead of deleting the main JSON first.
+```powershell
+$env:PYTHONPATH = (Get-Location).Path
+pytest -q backend\tests
+```
 
-The app also maintains:
+The current backend test suite covers the core local planner behavior, including AP operations, Daily Checkpoints, queue rules, storage, migration, and Jira-related logic.
 
-- `<planner>.bak`
-- `<planner>.tmp` during writes
-- `<planner>.old` only during Windows replacement
+---
 
-### Automatic recovery
+# Frontend build only
 
-At startup, if the main JSON is missing or invalid, the app tries valid recovery copies in this order:
+```bash
+cd frontend
+npm install
+npm run build
+```
 
-1. main JSON
-2. `.tmp`
-3. `.old`
-4. `.bak`
+The production frontend communicates with the packaged FastAPI server through same-origin `/api/...` routes.
 
-It will not silently initialize an empty planner when a valid recovery file is available.
+---
 
+# Troubleshooting
 
-## v1.5.0 Jira issue-key linking
+### macOS: `permission denied: ./run_macos_dev.sh`
 
-The AP editor now asks only for an Issue Key.
+```bash
+chmod +x run_macos_dev.sh build_macos.sh
+```
 
-- `ABC-123` is enough.
-- When Jira Base URL is `https://jira.company.internal`, the ticket URL becomes:
-  `https://jira.company.internal/browse/ABC-123`
-- Existing JSON/API data that contains only a ticket URL is still supported: the issue key is extracted from the URL.
-- Either `issueKey` or `url` can identify a Jira ticket in stored/imported data.
-- If both exist, the configured Jira Base URL + Issue Key is used as the canonical ticket URL.
+### macOS blocks `EisenDay.app`
 
+For an unsigned local build, use:
 
-## v1.5.0 concurrent-writer protection
+**Finder → right-click `EisenDay.app` → Open**
 
-Running multiple copies against the same planner JSON could previously cause last-writer-wins data loss.
+There is no need to disable Gatekeeper system-wide.
 
-Example:
+### Windows PowerShell blocks virtual-environment activation
 
-- instance A loads A/B/C
-- instance B loads A/B/C
-- A adds D and saves A/B/C/D
-- B adds E from stale memory and saves A/B/C/E
+You can call the virtual environment's Python directly:
 
-D disappears.
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r requirements-dev.txt
+```
 
-### Windows protection
+### Port `8787` is already in use during development
 
-v1.5.0 opens the active planner JSON as an exclusive writer for the lifetime of the process.
+Choose another backend port and update `VITE_API_BASE_URL` to match.
 
-- other processes can read the JSON
-- another Eisenhower Todo process cannot open the same JSON for writing
-- older versions attempting to overwrite or rename the same JSON are blocked by Windows while v1.5.0 owns it
-- a second v1.5.0 instance exits instead of becoming another writer
+Packaged `EisenDay.exe` and `EisenDay.app` automatically choose an available localhost port.
 
-v1.5.0 writes through the locked handle and keeps a valid `.bak` snapshot before each write. If a write fails, it rolls the main file back to its previous contents.
+### The app is already running
 
-The active instance also records its localhost URL in `%APPDATA%\EisenhowerTodo\running.json`, so a second v1.5.0 launch can reopen the already-running instance.
+EISEN / DAY uses a local lock to protect the planner data file from concurrent writes. If another instance is already using the same data file, a second process may be blocked to avoid corruption.
 
+---
 
-## v1.5.0
+# Notes
 
-### Direct JSON writes
-Normal saves no longer create `.tmp` or `.old`.
-The active planner JSON is updated directly on every change.
-A `.bak` snapshot is kept for recovery.
+- Core planner functionality is designed to work locally without an internet connection.
+- Jira integration requires access to the configured Jira server.
+- Windows executables must be built on Windows.
+- macOS `.app` bundles must be built on macOS.
+- macOS Developer ID signing and Apple notarization require an Apple Developer distribution environment and are not performed automatically by the local build script.
 
-### Jira HTML/SSO diagnosis
-The app no longer follows Jira redirects automatically.
-302/3xx, HTML login pages, 401, 403 and 404 are reported separately instead of showing `invalid character '<'`.
-The connection test uses `/myself` when no linked issue exists.
+---
 
+## Design principle
 
-## v1.5.0 version collision handling
+**The Matrix classifies work. The Queue decides what to do next. Daily Checkpoints protect recurring operational habits. Jira Watch keeps external work from disappearing.**
 
-If an older Eisenhower Todo version still owns the planner JSON lock, the new executable no longer silently reopens that old browser session.
-
-- same v1.5.0 already running: reopen the existing v1.5.0 page
-- older/different version running: show a Windows warning and exit
-- UI always displays the backend version badge
-
-This prevents users from thinking they are testing a new Jira parser while an older process is actually serving the page.
-
-
-## v1.5.0 per-user display name
-
-The greeting name is no longer hard-coded.
-
-- Click the name / pencil in the header, or use `이름 설정` in the sidebar.
-- The display name is stored in the per-user app config, not in the planner JSON.
-- Sharing the executable with coworkers does not make everyone share the same name.
-- Users can point at the same planner JSON while keeping independent local display names.
-- Existing users upgrading from the older hard-coded greeting keep `Minju` until they change it; fresh installs default to the OS account name.
-
-
-## v1.5.0 active-only + AP aging
-- unfinished APs persist until completed/deleted
-- completed APs are removed instead of archived
-- existing Archive entries are cleared on first v1.5.0 load
-- cards and queue show `N일`
-- age colors use both absolute age and relative age among active APs
-- Statistics shows active AP aging bands instead of 7-day completion trend
-
-
-## v1.5.0 visual redesign
-- custom local SVG icon system and botanical illustration
-- palette: #1B4436 / #88A33B / #F9E4C5 / #DDAD8A / #5B758C
-- warm editorial / catalog-inspired card design
-- no external CDN, font, or image dependency
-- AP age badge shortened to `N일`
-- v1.4.8 functionality preserved
-
-
-## v1.5.1
-- Final confirmed warm editorial UI implementation.
-- 2x2 Matrix and four bottom widgets preserved on desktop layouts.
-- Local decorative PNG assets added under `web/assets`.
-- Oldest active AP is pinned as Today's Queue Priority 1 without changing its quadrant.
-- Jira recent comment is clamped to two lines with expand/collapse.
-- AP editor provides Q1-Q4 presets while keeping Importance/Base Urgency sliders editable.
+That separation is the core idea behind EISEN / DAY.
