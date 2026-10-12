@@ -1,0 +1,10 @@
+frontend/node_modules/
+frontend/dist/
+backend/eisenday
+backend/eisenday.exe
+*.log
+
+/dist/
+/bin/
+*.tsbuildinfo
+.DS_Store

@@ -41,6 +41,7 @@ export const seedState: PlannerState = {
     {id:'jw-4',issueKey:'OPS-84',title:'Nginx reload investigation',status:'Open',updatedAt:created(2)},
   ],
   queueMode: 'manual',
+  quickNote: '',
   settings: {
     displayName:'Minju',
     timezone:Intl.DateTimeFormat().resolvedOptions().timeZone || 'Asia/Seoul',

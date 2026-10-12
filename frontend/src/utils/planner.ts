@@ -48,17 +48,14 @@ export const dayKey = (d = new Date()) =>
 
 export function orderedQueue(state: PlannerState): ActionPoint[] {
   const list = [...state.actionPoints];
-  if (!list.length) return list;
-  const oldest = [...list].sort((a,b)=>new Date(a.createdAt).getTime()-new Date(b.createdAt).getTime() || b.importance-a.importance || effectiveUrgency(b)-effectiveUrgency(a) || a.queueOrder-b.queueOrder)[0];
-  const rest = list.filter(ap=>ap.id!==oldest.id);
   if (state.queueMode === 'important') {
-    rest.sort((a, b) => b.importance - a.importance || effectiveUrgency(b) - effectiveUrgency(a) || a.queueOrder - b.queueOrder);
+    list.sort((a, b) => b.importance - a.importance || effectiveUrgency(b) - effectiveUrgency(a) || a.queueOrder - b.queueOrder);
   } else if (state.queueMode === 'emergency') {
-    rest.sort((a, b) => effectiveUrgency(b) - effectiveUrgency(a) || b.importance - a.importance || a.queueOrder - b.queueOrder);
+    list.sort((a, b) => effectiveUrgency(b) - effectiveUrgency(a) || b.importance - a.importance || a.queueOrder - b.queueOrder);
   } else {
-    rest.sort((a, b) => a.queueOrder - b.queueOrder);
+    list.sort((a, b) => a.queueOrder - b.queueOrder);
   }
-  return [oldest, ...rest];
+  return list;
 }
 
 export function shortDate(iso?: string): string {

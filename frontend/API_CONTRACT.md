@@ -1,6 +1,6 @@
 # EISEN / DAY Local API Contract
 
-Production frontend uses same-origin `/api/...` calls. `VITE_API_BASE_URL` is only needed for separate Vite/FastAPI development.
+The React frontend calls `/api/...`. During development Vite proxies `/api` to the local Go backend at `127.0.0.1:8787`.
 
 ## Planner
 
@@ -31,3 +31,5 @@ Production frontend uses same-origin `/api/...` calls. `VITE_API_BASE_URL` is on
 
 - `PUT /api/settings`
 - `GET /api/info`
+
+- `PUT /api/note` — save the persistent right-rail quick note (`{ "note": string }`)
